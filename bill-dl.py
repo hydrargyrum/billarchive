@@ -2,9 +2,17 @@
 
 from logging import getLogger
 from pathlib import Path
+import mimetypes
 
+import magic
 from weboob.capabilities.bill import CapDocument
 from weboob.tools.application.repl import ReplApplication
+
+
+def check_mime(filename, sample):
+    actual = magic.detect_from_content(sample)
+    guess = mimetypes.guess_type(filename)
+    return guess[0] == actual.mime_type
 
 
 class BackendDownloader:
@@ -46,6 +54,12 @@ class BackendDownloader:
         data = self.backend.download_document(document)
         if not data:
             self.logger.info('none data for %s', document)
+            return
+
+        if not check_mime(path.name, data):
+            # typically happens if reaching an html error page (with 200 status)
+            # while expecting a pdf document
+            self.logger.warning('unexpected MIME type for %r, considering corrupt download', document)
             return
 
         path.write_bytes(data)
