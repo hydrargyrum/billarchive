@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 from logging import getLogger
 from pathlib import Path
 import mimetypes
@@ -7,6 +8,12 @@ import mimetypes
 import magic
 from weboob.capabilities.bill import CapDocument
 from weboob.tools.application.repl import ReplApplication
+
+
+def to_datetime(obj):
+    if isinstance(obj, datetime.date):
+        obj = datetime.datetime.combine(obj, datetime.time())
+    return obj
 
 
 def check_mime(filename, sample):
@@ -70,6 +77,11 @@ class BackendDownloader:
         (self.root_path() / subscription.id).mkdir(exist_ok=True)
 
         for document in self.backend.iter_documents(subscription):
+            # TODO timezones?
+            if document.date and to_datetime(document.date) < self.get_date_until(subscription):
+                self.logger.info('reached date threshold for %r', subscription)
+                break
+
             self.download_document(subscription, document)
 
     def download(self):
