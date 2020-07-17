@@ -1,22 +1,38 @@
 #!/usr/bin/env python3
 
+from logging import getLogger
 from pathlib import Path
 
 from weboob.capabilities.bill import CapDocument
 from weboob.tools.application.repl import ReplApplication
 
 
-class BillDlApp(ReplApplication):
-    APPNAME = 'bill-dl'
-    VERSION = '0.1'
-    COPYRIGHT = 'Copyleft weboob project'
-    CAPS = (CapDocument,)
+class BackendDownloader:
+    def __init__(self, backend, config):
+        self.backend = backend
+        self.config = config
+        self.logger = getLogger(f'downloader.{backend.name}')
+
+    def get_date_until(self, subscription):
+        return datetime.datetime.min
+
+    def get_backend_config(self, option, default):
+        return self.config.get(self.backend.name, option, default=default)
 
     def root_path(self):
-        return Path.cwd()
+        path = self.get_backend_config('dir', None)
+        if path:
+            return Path(path)
 
-    def download_document(self, backend, subscription, document):
-        path = (self.root_path() / backend.name / subscription.id / f"{document.id}.{document.format}")
+        path = self.config.get('dir', default=None)
+        if path:
+            path = Path(path)
+        else:
+            path = Path.cwd()
+        return path / self.backend.name
+
+    def download_document(self, subscription, document):
+        path = (self.root_path() / subscription.id / f"{document.id}.{document.format}")
         if not document.has_file:
             self.logger.info('%s document has no file, no download', document)
             return
@@ -26,7 +42,8 @@ class BillDlApp(ReplApplication):
             return
 
         self.logger.info('downloading %s to %s', document, path)
-        data = backend.download_document(document)
+        # TODO option to force pdf?
+        data = self.backend.download_document(document)
         if not data:
             self.logger.info('none data for %s', document)
             return
@@ -34,22 +51,38 @@ class BillDlApp(ReplApplication):
         path.write_bytes(data)
         self.logger.info('successfully downloaded %s', document)
 
-    def download_subscription(self, backend, subscription):
+    def download_subscription(self, subscription):
         self.logger.debug('downloading subscription %s', subscription)
-        (self.root_path() / backend.name / subscription.id).mkdir(exist_ok=True)
-        for document in backend.iter_documents(subscription):
-            self.download_document(backend, subscription, document)
+        (self.root_path() / subscription.id).mkdir(exist_ok=True)
 
-    def download_backend(self, backend):
-        self.logger.debug('downloading backend %s', backend)
-        (self.root_path() / backend.name).mkdir(exist_ok=True)
-        for subscription in backend.iter_subscription():
-            self.download_subscription(backend, subscription)
+        for document in self.backend.iter_documents(subscription):
+            self.download_document(subscription, document)
+
+    def download(self):
+        self.logger.debug('downloading backend %s', self.backend)
+        self.root_path().mkdir(exist_ok=True)
+        for subscription in self.backend.iter_subscription():
+            self.download_subscription(subscription)
+
+
+class BillDlApp(ReplApplication):
+    APPNAME = 'bill-dl'
+    VERSION = '0.1'
+    COPYRIGHT = 'Copyleft weboob project'
+    CAPS = (CapDocument,)
 
     def do_download(self, _):
         """Download documents"""
-        for _ in self.do(self.download_backend):
+
+        def download(backend):
+            return BackendDownloader(backend, self.config).download()
+
+        for _ in self.do(download):
             pass
+
+    def main(self, argv):
+        self.load_config()
+        return super().main(argv)
 
 
 BillDlApp.run()
