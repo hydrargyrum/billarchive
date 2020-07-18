@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 import datetime
+from decimal import Decimal
 from logging import getLogger
 from pathlib import Path
 import mimetypes
 
 import magic
+from weboob.capabilities.base import empty, BaseObject
 from weboob.capabilities.bill import CapDocument
 from weboob.tools.application.repl import ReplApplication
 
@@ -22,10 +24,29 @@ def check_mime(filename, sample):
     return guess[0] == actual.mime_type
 
 
+def to_dict(obj):
+    def convert(obj):
+        if empty(obj):
+            return None
+        elif isinstance(obj, Decimal):
+            return str(obj)
+        elif isinstance(obj, BaseObject):
+            # TODO circular references
+            return to_dict(obj)
+        return obj
+
+    return {
+        k: convert(v)
+        for k, v in obj.iter_fields()
+        if not empty(v)
+    }
+
+
 class BackendDownloader:
-    def __init__(self, backend, config):
+    def __init__(self, backend, app):
         self.backend = backend
-        self.config = config
+        self.config = app.config
+        self.storage = app.storage
         self.logger = getLogger(f'downloader.{backend.name}')
 
     def get_date_until(self, subscription):
@@ -46,7 +67,17 @@ class BackendDownloader:
             path = Path.cwd()
         return path / self.backend.name
 
+    def _set_meta_info(self, prefix):
+        now = datetime.datetime.now()
+        self.storage.set(*prefix, 'info', 'last_seen', now)
+        if not self.storage.get(*prefix, 'info', 'first_seen', default=None):
+            self.storage.set(*prefix, 'info', 'first_seen', now)
+
     def download_document(self, subscription, document):
+        store_prefix = ('db', self.backend.name, subscription.id, 'documents', document.id)
+        self._set_meta_info(store_prefix)
+        self.storage.set(*store_prefix, 'object', to_dict(document))
+
         path = (self.root_path() / subscription.id / f"{document.id}.{document.format}")
         if not document.has_file:
             self.logger.info('%s document has no file, no download', document)
@@ -71,9 +102,15 @@ class BackendDownloader:
 
         path.write_bytes(data)
         self.logger.info('successfully downloaded %s', document)
+        self.storage.set(*store_prefix, 'info', 'downloaded_at', datetime.datetime.now())
 
     def download_subscription(self, subscription):
         self.logger.debug('downloading subscription %s', subscription)
+
+        store_prefix = ('db', self.backend.name, subscription.id, 'subscription')
+        self._set_meta_info(store_prefix)
+        self.storage.set(*store_prefix, 'object', to_dict(subscription))
+
         (self.root_path() / subscription.id).mkdir(exist_ok=True)
 
         for document in self.backend.iter_documents(subscription):
@@ -96,19 +133,24 @@ class BillDlApp(ReplApplication):
     VERSION = '0.1'
     COPYRIGHT = 'Copyleft weboob project'
     CAPS = (CapDocument,)
+    STORAGE = {'db': {}}
 
     def do_download(self, _):
         """Download documents"""
 
         def download(backend):
-            return BackendDownloader(backend, self.config).download()
+            return BackendDownloader(backend, self).download()
 
         for _ in self.do(download):
             pass
 
     def main(self, argv):
         self.load_config()
-        return super().main(argv)
+        self.create_storage()
+        try:
+            return super().main(argv)
+        finally:
+            self.storage.save()
 
 
 BillDlApp.run()
