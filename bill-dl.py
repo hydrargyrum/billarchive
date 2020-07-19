@@ -56,13 +56,13 @@ class BackendDownloader:
         return self.config.get(self.backend.name, option, default=default)
 
     def root_path(self):
-        path = self.get_backend_config('dir', None)
+        path = self.get_backend_config('dir', default=None)
         if path:
-            return Path(path)
+            return Path(path).expanduser()
 
         path = self.config.get('dir', default=None)
         if path:
-            path = Path(path)
+            path = Path(path).expanduser()
         else:
             path = Path.cwd()
         return path / self.backend.name
