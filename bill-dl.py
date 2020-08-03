@@ -48,6 +48,7 @@ class BackendDownloader:
         self.config = app.config
         self.storage = app.storage
         self.logger = getLogger(f'downloader.{backend.name}')
+        self.app = app
 
     def get_date_until(self, subscription):
         return datetime.datetime.min
@@ -101,7 +102,7 @@ class BackendDownloader:
             return
 
         path.write_bytes(data)
-        self.logger.info('successfully downloaded %s', document)
+        self.app.print('Downloaded %s' % path)
         self.storage.set(*store_prefix, 'info', 'downloaded_at', datetime.datetime.now())
 
     def download_subscription(self, subscription):
@@ -122,7 +123,7 @@ class BackendDownloader:
             self.download_document(subscription, document)
 
     def download(self):
-        self.logger.debug('downloading backend %s', self.backend)
+        self.app.print('Processing backend %r' % self.backend.name)
         self.root_path().mkdir(exist_ok=True)
         for subscription in self.backend.iter_subscription():
             self.download_subscription(subscription)
