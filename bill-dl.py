@@ -102,6 +102,10 @@ class BackendDownloader:
             return
 
         path.write_bytes(data)
+        try:
+            path.chmod(path.stat().st_mode & ~0o222)  # archiving, right?
+        except OSError as exc:
+            self.logger.warning('could not set file %r as readonly: %r', path, exc)
         self.app.print('Downloaded %s' % path)
         self.storage.set(*store_prefix, 'info', 'downloaded_at', datetime.datetime.now())
 
