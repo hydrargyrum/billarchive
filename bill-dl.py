@@ -49,6 +49,8 @@ def to_dict(obj):
 
 
 class BackendDownloader:
+    default_filename = '{subscription.id}/{document.id}.{extension}'
+
     def __init__(self, backend, app):
         self.backend = backend
         self.config = app.config
@@ -60,10 +62,14 @@ class BackendDownloader:
         return datetime.datetime.min
 
     def get_backend_config(self, option, default):
-        return self.config.get(self.backend.name, option, default=default)
+        missing = object()
+        ret = self.config.get(self.backend.name, option, default=missing)
+        if ret is missing:
+            ret = self.config.get(option, default=default)
+        return ret
 
     def root_path(self):
-        path = self.get_backend_config('dir', default=None)
+        path = self.config.get(self.backend.name, 'dir', default=None)
         if path:
             return Path(path).expanduser()
 
@@ -85,7 +91,10 @@ class BackendDownloader:
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(document))
 
-        path = (self.root_path() / subscription.id / f"{document.id}.{document.format}")
+        template = self.get_backend_config('filename', default=self.default_filename)
+        path = self.root_path() / template.format(subscription=subscription, document=document, extension=document.format)
+        path.parent.mkdir(exist_ok=True)
+
         if not document.has_file:
             self.logger.info('%s document has no file, no download', document)
             return
@@ -121,8 +130,6 @@ class BackendDownloader:
         store_prefix = ('db', self.backend.name, subscription.id, 'subscription')
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(subscription))
-
-        (self.root_path() / subscription.id).mkdir(exist_ok=True)
 
         for document in self.backend.iter_documents(subscription):
             # TODO timezones?
