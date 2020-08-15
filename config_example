@@ -17,3 +17,6 @@ dir = ~/some-other-place
 
 filename = {subscription.label}/{document.label}.{extension}
 # documents will be downloaded in ~/some-other-place/<subcription label>/<document label>.<extension>
+
+# download only bill or contract documents
+accepted_types = bill contract

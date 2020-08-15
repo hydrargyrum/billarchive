@@ -86,10 +86,21 @@ class BackendDownloader:
         if not self.storage.get(*prefix, 'info', 'first_seen', default=None):
             self.storage.set(*prefix, 'info', 'first_seen', now)
 
+    def is_accepted_type(self, document):
+        accepted_types = self.get_backend_config('accepted_types', default='').strip().lower()
+        if not accepted_types:
+            return True
+
+        return (document.type or '').lower() in accepted_types.split()
+
     def download_document(self, subscription, document):
         store_prefix = ('db', self.backend.name, subscription.id, 'documents', document.id)
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(document))
+
+        if not self.is_accepted_type(document):
+            self.logger.info('%s document has no accepted type, no download', document)
+            return
 
         template = self.get_backend_config('filename', default=self.default_filename)
         path = self.root_path() / template.format(subscription=subscription, document=document, extension=document.format)
