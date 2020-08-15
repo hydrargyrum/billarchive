@@ -171,4 +171,5 @@ class BillDlApp(ReplApplication):
             self.storage.save()
 
 
-BillDlApp.run()
+if __name__ == '__main__':
+    BillDlApp.run()
