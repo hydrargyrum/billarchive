@@ -9,6 +9,10 @@ dir = ~/my-bills
 # filename = {subscription.id}/{document.id}.{extension}
 # documents will be downloaded in ~/my-bill/<backend name>/<subcription id>/<document id>.<extension>
 
+# first time we discover a subscription, download all documents
+initial_sync_until = forever
+# afterwards, look only for new document in the last 3 months
+sync_until = 3 months
 
 [some_backend]
 # configuration specific to one backend
@@ -20,3 +24,6 @@ filename = {subscription.label}/{document.label}.{extension}
 
 # download only bill or contract documents
 accepted_types = bill contract
+
+# first time we discover a subscription, download all documents newer than 2020-01-01
+initial_sync_until = 2020-01-01

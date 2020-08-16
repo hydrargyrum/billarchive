@@ -11,7 +11,10 @@ from decimal import Decimal
 from logging import getLogger
 from pathlib import Path
 import mimetypes
+import re
 
+from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
 import magic
 from weboob.capabilities.base import empty, BaseObject
 from weboob.capabilities.bill import CapDocument
@@ -48,6 +51,23 @@ def to_dict(obj):
     }
 
 
+duration_re = re.compile(r'(?P<quantity>\d+) (?P<unit>days?|months?|years?)')
+
+
+def parse_date_since(s):
+    match = duration_re.fullmatch(s)
+    if match:
+        unit = match['unit']
+        if not unit.endswith('s'):
+            unit += 's'
+        return datetime.date.today() - relativedelta(**{unit: int(match['quantity'])})
+
+    try:
+        return parse_date(s)
+    except ValueError:
+        pass
+
+
 class BackendDownloader:
     default_filename = '{subscription.id}/{document.id}.{extension}'
 
@@ -58,8 +78,19 @@ class BackendDownloader:
         self.logger = getLogger(f'downloader.{backend.name}')
         self.app = app
 
-    def get_date_until(self, subscription):
-        return datetime.datetime.min
+    def get_date_until(self, subscription, is_initial=False):
+        option = 'sync_until'
+        if is_initial:
+            option = 'initial_sync_until'
+
+        v = None
+        s = self.get_backend_config(option, default=None)
+        if s:
+            v = parse_date_since(s)
+
+        if not v:
+            v = datetime.datetime.min
+        return v
 
     def get_backend_config(self, option, default):
         missing = object()
@@ -139,12 +170,14 @@ class BackendDownloader:
         self.logger.debug('downloading subscription %s', subscription)
 
         store_prefix = ('db', self.backend.name, subscription.id, 'subscription')
+
+        is_initial = bool(self.storage.get(*store_prefix, 'info', 'first_seen', default=None))
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(subscription))
 
         for document in self.backend.iter_documents(subscription):
             # TODO timezones?
-            if document.date and to_datetime(document.date) < self.get_date_until(subscription):
+            if document.date and to_datetime(document.date) < self.get_date_until(subscription, is_initial):
                 self.logger.info('reached date threshold for %r', subscription)
                 break
 
