@@ -20,6 +20,8 @@ from weboob.capabilities.base import empty, BaseObject
 from weboob.capabilities.bill import CapDocument
 from weboob.tools.application.repl import ReplApplication
 
+from . import __version__
+
 
 def to_datetime(obj):
     if isinstance(obj, datetime.date):
@@ -191,8 +193,8 @@ class BackendDownloader:
 
 
 class BillDlApp(ReplApplication):
-    APPNAME = 'bill-dl'
-    VERSION = '0.1'
+    APPNAME = 'billarchive'
+    VERSION = __version__
     COPYRIGHT = 'Copyleft weboob project'
     CAPS = (CapDocument,)
     STORAGE = {'db': {}}
