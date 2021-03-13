@@ -16,9 +16,9 @@ import re
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 import magic
-from weboob.capabilities.base import empty, BaseObject
-from weboob.capabilities.bill import CapDocument
-from weboob.tools.application.repl import ReplApplication
+from woob.capabilities.base import empty, BaseObject
+from woob.capabilities.bill import CapDocument
+from woob.tools.application.repl import ReplApplication
 
 from . import __version__
 
@@ -195,7 +195,7 @@ class BackendDownloader:
 class BillDlApp(ReplApplication):
     APPNAME = 'billarchive'
     VERSION = __version__
-    COPYRIGHT = 'Copyleft weboob project'
+    COPYRIGHT = 'Copyleft woob project'
     CAPS = (CapDocument,)
     STORAGE = {'db': {}}
 

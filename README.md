@@ -4,14 +4,14 @@ billarchive allows you to download bills from popular websites, so you don't
 have to periodically visit every website where you buy products or services
 and download bills.
 
-It relies on modules implemented by [weboob](https://weboob.org/modules).
+It relies on modules implemented by [woob](https://woob.tech/modules).
 
 # Configuration
 
-The `~/.config/weboob/backends` file must be configured for you to choose the
+The `~/.config/woob/backends` file must be configured for you to choose the
 desired modules and their credentials.
 
-Then `~/.config/weboob/billarchive` can be configured to specify various
+Then `~/.config/woob/billarchive` can be configured to specify various
 options, e.g. how to name downloaded files, whether to force conversion to pdf,
 date until which new documents are searched, etc.
 
