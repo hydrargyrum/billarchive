@@ -177,12 +177,17 @@ class BackendDownloader:
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(subscription))
 
+        # collect documents first, some backends do not support well mixing download and listing
+        documents = []
         for document in self.backend.iter_documents(subscription):
             # TODO timezones?
             if document.date and to_datetime(document.date) < self.get_date_until(subscription, is_initial):
                 self.logger.info('reached date threshold for %r', subscription)
                 break
 
+            documents.append(document)
+
+        for document in documents:
             self.download_document(subscription, document)
 
     def download(self):
