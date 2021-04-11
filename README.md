@@ -15,7 +15,7 @@ Then `~/.config/woob/billarchive` can be configured to specify various
 options, e.g. how to name downloaded files, whether to force conversion to pdf,
 date until which new documents are searched, etc.
 
-See `config_sample` file in repository.
+See [`config_example`](config_example) file in repository.
 
 # Usage
 

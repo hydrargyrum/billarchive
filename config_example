@@ -1,3 +1,5 @@
+# this configuration file should be put at ~/.config/woob/billarchive
+
 [ROOT]
 # configuration for all backends
 
@@ -7,7 +9,7 @@ dir = ~/my-bills
 
 # default value:
 # filename = {subscription.id}/{document.id}.{extension}
-# documents will be downloaded in ~/my-bill/<backend name>/<subcription id>/<document id>.<extension>
+# documents will be downloaded in ~/my-bills/<backend name>/<subcription id>/<document id>.<extension>
 
 # first time we discover a subscription, download all documents
 initial_sync_until = forever
@@ -15,7 +17,8 @@ initial_sync_until = forever
 sync_until = 3 months
 
 [some_backend]
-# configuration specific to one backend
+# optional configuration specific to one backend
+# there should be a matching "[some_backend]" section in ~/.config/woob/backends
 
 dir = ~/some-other-place
 
