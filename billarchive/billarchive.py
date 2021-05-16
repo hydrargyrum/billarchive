@@ -12,6 +12,7 @@ from logging import getLogger
 from pathlib import Path
 import mimetypes
 import re
+from string import Formatter
 
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
@@ -68,6 +69,22 @@ def parse_date_since(s):
         return parse_date(s)
     except ValueError:
         pass
+
+
+class FilenameFormatter(Formatter):
+    def convert_field(self, value, conv):
+        protect = conv is None and isinstance(value, str)
+
+        if conv == "u":
+            conv = None
+
+        if protect:
+            value = value.replace("/", "_slash_")
+            if value.startswith("."):
+                value = f"dot_{value[1:]}"
+            return value
+        else:
+            return super().convert_field(value, conv)
 
 
 class BackendDownloader:
@@ -127,6 +144,8 @@ class BackendDownloader:
         return (document.type or '').lower() in accepted_types.split()
 
     def download_document(self, subscription, document):
+        formatter = FilenameFormatter()
+
         store_prefix = ('db', self.backend.name, subscription.id, 'documents', document.id)
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(document))
@@ -136,7 +155,11 @@ class BackendDownloader:
             return
 
         template = self.get_backend_config('filename', default=self.default_filename)
-        path = self.root_path() / template.format(subscription=subscription, document=document, extension=document.format)
+        filename = formatter.format(
+            template,
+            subscription=subscription, document=document, extension=document.format,
+        )
+        path = self.root_path() / filename
         path.parent.mkdir(exist_ok=True)
 
         if not document.has_file:
