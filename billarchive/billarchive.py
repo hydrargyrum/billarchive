@@ -233,7 +233,7 @@ class BillDlApp(ReplApplication):
         def download(backend):
             return BackendDownloader(backend, self).download()
 
-        for _ in self.do(download):
+        for _ in self._do_and_retry(download):
             pass
 
     def main(self, argv):
