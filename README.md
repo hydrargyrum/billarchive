@@ -6,7 +6,7 @@ and download bills.
 
 It relies on modules implemented by [woob](https://woob.tech/modules).
 
-# Configuration
+## Configuration
 
 The `~/.config/woob/backends` file must be configured for you to choose the
 desired modules and their credentials.
@@ -17,7 +17,7 @@ date until which new documents are searched, etc.
 
 See [`config_example`](config_example) file in repository.
 
-# Usage
+## Usage
 
 Run `billarchive download` to download all documents on all backends, as
 specified by config.
