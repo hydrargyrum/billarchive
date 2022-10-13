@@ -17,6 +17,32 @@ date until which new documents are searched, etc.
 
 See [`config_example`](config_example) file in repository.
 
+## Installation
+
+### Normal setup
+
+- pip install billarchive
+
+### Dev setup
+
+You need to have pip installed first. You can look at [pip's manual](https://pip.pypa.io/en/stable/installation/) for more information.
+
+#### If woob is already installed
+
+```sh
+git clone https://gitlab.com/hydrargyrum/billarchive/
+cd billarchive
+pip install --no-deps -e .
+```
+
+#### If woob is not installed already
+
+```sh
+git clone https://gitlab.com/hydrargyrum/billarchive/
+cd billarchive
+pip install -e .
+```
+
 ## Usage
 
 Run `billarchive download` to download all documents on all backends, as
