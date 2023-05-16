@@ -261,7 +261,6 @@ class BillDlApp(ReplApplication):
 
     def main(self, argv):
         self.load_config()
-        self.create_storage()
         try:
             return super().main(argv)
         finally:
