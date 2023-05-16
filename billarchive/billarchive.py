@@ -20,6 +20,7 @@ import magic
 from woob.capabilities.base import empty, BaseObject
 from woob.capabilities.bill import CapDocument
 from woob.tools.application.repl import ReplApplication
+from woob.capabilities.base import NotLoaded, NotAvailable
 
 from . import __version__
 
@@ -77,6 +78,11 @@ class FilenameFormatter(Formatter):
 
         if conv == "u":
             conv = None
+
+        if (conv == "d"):
+            conv = None
+            if (value in [NotLoaded, NotAvailable]):
+                return datetime.datetime.min
 
         if protect:
             value = value.replace("/", "_slash_")

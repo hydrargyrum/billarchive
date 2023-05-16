@@ -14,6 +14,14 @@ dir = ~/my-bills
 # some protection is applied to {} variables, "/" is replaced with "_slash_"
 # and a leading dot is replaced with "dot_".
 # if this is not desired use {variable!u} instead ("u" is for "unsafe")
+#
+# if you want to use date-like fields (as `document.date` for example) with a date-specific formatting
+# (e.g `{document.date:%Y%m%d}`) there are some times when the date field is not available from the backend,
+# and instead would be a `NotLoaded` or `NotAvailable` value. As this is not a proper date, the formatter
+# will not been able to format it, and will throw an exception.
+# To prevent this, you can use the `!d` conversion, which will replace `NotLoaded` or `NotAvailable` with
+# `datetime.datetime.min` (in general: 01/01/0001) which will prevent the exception.
+# You will have to write your template like this: `{document.date!d:%Y%m%d}`
 
 # first time we discover a subscription, download all documents
 initial_sync_until = forever
