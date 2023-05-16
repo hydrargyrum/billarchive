@@ -11,9 +11,12 @@ dir = ~/my-bills
 # filename = {subscription.id}/{document.id}.{extension}
 # documents will be downloaded in ~/my-bills/<backend name>/<subcription id>/<document id>.<extension>
 #
-# some protection is applied to {} variables, "/" is replaced with "_slash_"
+# some protection is applied to {} variables, "/" is replaced with "_slash_" (by default)
 # and a leading dot is replaced with "dot_".
-# if this is not desired use {variable!u} instead ("u" is for "unsafe")
+# You can customize the replacement string with `slash_character_replacement`
+#slash_character_replacement = _slash_
+#
+# if you do not want this protection applied, use {variable!u} instead ("u" is for "unsafe")
 #
 # if you want to use date-like fields (as `document.date` for example) with a date-specific formatting
 # (e.g `{document.date:%Y%m%d}`) there are some times when the date field is not available from the backend,

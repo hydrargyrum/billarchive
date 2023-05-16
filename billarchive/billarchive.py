@@ -73,6 +73,10 @@ def parse_date_since(s):
 
 
 class FilenameFormatter(Formatter):
+    def __init__(self, *args, slash_character_replacement=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.slash_character_replacement = slash_character_replacement or "_slash_"
+
     def convert_field(self, value, conv):
         protect = conv is None and isinstance(value, str)
 
@@ -85,7 +89,7 @@ class FilenameFormatter(Formatter):
                 return datetime.datetime.min
 
         if protect:
-            value = value.replace("/", "_slash_")
+            value = value.replace("/", self.slash_character_replacement)
             if value.startswith("."):
                 value = f"dot_{value[1:]}"
             return value
@@ -162,8 +166,6 @@ class BackendDownloader:
         return (document.type or '').lower() in accepted_types.split()
 
     def download_document(self, subscription, document):
-        formatter = FilenameFormatter()
-
         store_prefix = ('db', self.backend.name, subscription.id, 'documents', document.id)
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(document))
@@ -173,7 +175,7 @@ class BackendDownloader:
             return
 
         template = self.get_backend_config('filename', default=self.default_filename)
-        filename = formatter.format(
+        filename = self.formatter.format(
             template,
             subscription=subscription, document=document, extension=document.format,
         )
@@ -237,6 +239,9 @@ class BackendDownloader:
             self.download_document(subscription, document)
 
     def download(self):
+        slash_character_replacement = self.get_backend_config('slash_character_replacement', default=None)
+        self.formatter = FilenameFormatter(slash_character_replacement=slash_character_replacement)
+
         self.app.print('Processing backend %r' % self.backend.name)
         self.root_path().mkdir(exist_ok=True, parents=True)
         for subscription in self.backend.iter_subscription():
