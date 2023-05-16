@@ -28,6 +28,15 @@ initial_sync_until = forever
 # afterwards, look only for new document in the last 3 months
 sync_until = 3 months
 
+# Allows a strategy where each document is downloaded as soon as possible, i.e.
+# each time the backend has fetched one batch of document listings.
+# The default strategy (`download_when_listing = False`) is a two-step approach:
+# a) first list all documents matching the `sync_until` condition
+# b) then download all these documents
+#
+# According to a comment in the source code, some backends do not support well mixing download and listing
+#download_when_listing = False
+
 [some_backend]
 # optional configuration specific to one backend
 # there should be a matching "[some_backend]" section in ~/.config/woob/backends
