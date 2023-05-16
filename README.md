@@ -6,6 +6,8 @@ and download bills.
 
 It relies on modules implemented by [woob](https://woob.tech/modules).
 
+[PyPI page](https://pypi.org/project/billarchive/)
+
 ## Configuration
 
 The `~/.config/woob/backends` file must be configured for you to choose the
