@@ -63,7 +63,7 @@ def parse_date_since(s):
         unit = match['unit']
         if not unit.endswith('s'):
             unit += 's'
-        return datetime.date.today() - relativedelta(**{unit: int(match['quantity'])})
+        return to_datetime(datetime.date.today() - relativedelta(**{unit: int(match['quantity'])}))
 
     try:
         return parse_date(s)
