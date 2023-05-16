@@ -196,7 +196,7 @@ class BackendDownloader:
 
         store_prefix = ('db', self.backend.name, subscription.id, 'subscription')
 
-        is_initial = bool(self.storage.get(*store_prefix, 'info', 'first_seen', default=None))
+        is_initial = not bool(self.storage.get(*store_prefix, 'info', 'first_seen', default=None))
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(subscription))
 
