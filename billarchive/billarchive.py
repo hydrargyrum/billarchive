@@ -178,7 +178,7 @@ class BackendDownloader:
             subscription=subscription, document=document, extension=document.format,
         )
         path = self.root_path() / filename
-        path.parent.mkdir(exist_ok=True)
+        path.parent.mkdir(exist_ok=True, parents=True)
 
         if not document.has_file:
             self.logger.info('%s document has no file, no download', document)
@@ -238,7 +238,7 @@ class BackendDownloader:
 
     def download(self):
         self.app.print('Processing backend %r' % self.backend.name)
-        self.root_path().mkdir(exist_ok=True)
+        self.root_path().mkdir(exist_ok=True, parents=True)
         for subscription in self.backend.iter_subscription():
             self.download_subscription(subscription)
 
