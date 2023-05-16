@@ -103,6 +103,18 @@ class BackendDownloader:
         self.logger = getLogger(f'downloader.{backend.name}')
         self.app = app
 
+    def str2bool(self, str):
+        if str is True:
+            return True
+        if str is False:
+            return False
+        if str.upper() == "True".upper():
+            return True
+        if str.upper() == "False".upper():
+            return False
+        self.logger.error("Cannot convert '%s' to boolean." % str)
+        raise ValueError
+
     def get_date_until(self, subscription, is_initial=False):
         option = 'sync_until'
         if is_initial:
@@ -206,6 +218,8 @@ class BackendDownloader:
         self._set_meta_info(store_prefix)
         self.storage.set(*store_prefix, 'object', to_dict(subscription))
 
+        download_when_listing = self.str2bool(self.get_backend_config('download_when_listing', default=False))
+
         # collect documents first, some backends do not support well mixing download and listing
         documents = []
         for document in self.backend.iter_documents(subscription):
@@ -214,7 +228,10 @@ class BackendDownloader:
                 self.logger.info('reached date threshold for %r', subscription)
                 break
 
-            documents.append(document)
+            if download_when_listing:
+                self.download_document(subscription, document)
+            else:
+                documents.append(document)
 
         for document in documents:
             self.download_document(subscription, document)
