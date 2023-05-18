@@ -106,6 +106,8 @@ class BackendDownloader:
         self.storage = app.storage
         self.logger = getLogger(f'downloader.{backend.name}')
         self.app = app
+        slash_character_replacement = self.get_backend_config('slash_character_replacement', default=None)
+        self.formatter = FilenameFormatter(slash_character_replacement=slash_character_replacement)
 
     def str2bool(self, str):
         if str is True:
@@ -239,9 +241,6 @@ class BackendDownloader:
             self.download_document(subscription, document)
 
     def download(self):
-        slash_character_replacement = self.get_backend_config('slash_character_replacement', default=None)
-        self.formatter = FilenameFormatter(slash_character_replacement=slash_character_replacement)
-
         self.app.print('Processing backend %r' % self.backend.name)
         self.root_path().mkdir(exist_ok=True, parents=True)
         for subscription in self.backend.iter_subscription():
