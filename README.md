@@ -23,7 +23,7 @@ See [`config_example`](config_example) file in repository.
 
 ### Normal setup
 
-- pip install billarchive
+- pipx install billarchive
 
 ### Dev setup
 
